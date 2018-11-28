@@ -23,8 +23,6 @@ GameObject:
   - component: {fileID: 61925215695198254}
   - component: {fileID: 114578498237957812}
   - component: {fileID: 114989228322936722}
-  - component: {fileID: 114806275857677756}
-  - component: {fileID: 114155889636311908}
   m_Layer: 0
   m_Name: WhiteGem
   m_TagString: Untagged
@@ -86,20 +84,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &114155889636311908
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1044622757722660}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2aab2d880f1a843449b28c7c71fe0225, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  renderers:
-  - {fileID: 212386985273333440}
-  textMeshes: []
 --- !u!114 &114578498237957812
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -125,18 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ghostSprite: {fileID: 1216588941186282}
   type: 4
---- !u!114 &114806275857677756
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1044622757722660}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 09dcfbdafb77c2b4cb913640cbb5e65d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spriteRender: {fileID: 212386985273333440}
+  matchable: 1
 --- !u!114 &114989228322936722
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -148,9 +121,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2aab2d880f1a843449b28c7c71fe0225, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderers:
-  - {fileID: 212386985273333440}
-  textMeshes: []
+  targetAlpha: 1
+  duration: 1
+  target: {fileID: 0}
 --- !u!212 &212386985273333440
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -186,7 +159,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.7793102, g: 0, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -203,7 +176,7 @@ RectTransform:
   m_GameObject: {fileID: 1044622757722660}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.84033614, y: 0.84033614, z: 0}
   m_Children:
   - {fileID: 4324558704352860}
   m_Father: {fileID: 0}

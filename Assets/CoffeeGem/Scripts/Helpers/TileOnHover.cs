@@ -2,15 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TileOnHover : OnHover {
+public class TileOnHover : OnEvent {
 
     private bool mouseEnter;
 
 	// Use this for initialization
 	void Start () {
-        enter += gameObject.GetComponent<ShowOnHover>().show;
+        enter += () => {
+            gameObject.GetComponent<Fade>().setShow(true, true);
+        };
+
         enter += () => mouseEnter = true;
-        exit += gameObject.GetComponent<ShowOnHover>().hide;
+        exit += () => {
+            gameObject.GetComponent<Fade>().setShow(false, true);
+            gameObject.GetComponent<ColorLerp>().cancelLerpToColor();
+        };
         exit += () => mouseEnter = false;
     }
 

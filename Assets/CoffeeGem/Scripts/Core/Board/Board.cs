@@ -7,24 +7,32 @@ using UnityEngine;
 public class Board : MonoBehaviour {
 
     [SerializeField]
+    private float boardWidth;
+
+    [SerializeField]
     private int height = 5;
     [SerializeField]
     private int width = 6;
     [SerializeField]
     private List<IBoardEntity> availibleGems = new List<IBoardEntity>();
     [SerializeField]
-    private GameObject tile;
+    private GameObject tilePf;
     [SerializeField]
     const float fallingSpeed = 5;
     [SerializeField]
     private float displaceTime = .25f;
-
     [SerializeField]
     private GameObject bEHolder;
     [SerializeField]
     private GameObject tileHolder;
     [SerializeField]
     private Score score;
+    [SerializeField]
+    private Color highlightColor;
+    [SerializeField]
+    private Color adjacentColor;
+    [SerializeField]
+    private GameObject scorePipPF;
 
     [SerializeField]
     private GameObject scoreFadePF;
@@ -32,23 +40,40 @@ public class Board : MonoBehaviour {
     [SerializeField]
     private AudioClip scoreSound;
 
+    private bool boardLocked = false;
     private float gemHeight;
     private float gemWidth;
     private int checkingMatchCoroutines = 0;
+    private float beScalar;
+    private int extraIngredient;
 
     private List<IBoardEntity> previewBoardEntities = new List<IBoardEntity>();
     private List<TileOnHover> tiles = new List<TileOnHover>();
+    private Dictionary<Position, Tile> positionToTile = new Dictionary<Position, Tile>();
     private Ingredient selectedIngredient;
+    private IngredientSelector ingredientSelector;
 
     private Dictionary<Position, IBoardEntity> board = new Dictionary<Position, IBoardEntity>();
     private Boolean sendToCustomer;
     private List<Match> currentMatches = new List<Match>();
+    private List<GemType> fallingTypes = new List<GemType>();
 
     // Use this for initialization
     void Start () {
+        ingredientSelector = FindObjectOfType<IngredientSelector>();
+
+        float targetGemWidth = boardWidth / width;
+
+
         RectTransform rt = (RectTransform)availibleGems[0].gameObject.transform;
-        gemWidth = rt.rect.width;
-        gemHeight = rt.rect.height;
+        float tempGemWidth = rt.rect.width;
+        beScalar = targetGemWidth / tempGemWidth;
+        foreach (IBoardEntity be in availibleGems) {
+            be.gameObject.transform.localScale = new Vector2(beScalar, beScalar);
+        }
+
+        gemWidth = targetGemWidth;
+        gemHeight = targetGemWidth;
 
         selectedIngredient = new BasicRedIngredient();
         populateBoard();
@@ -90,13 +115,24 @@ public class Board : MonoBehaviour {
     }
 
     private void addTile(Position position) {
-        GameObject tile = Instantiate(this.tile);
+        GameObject tile = Instantiate(this.tilePf);
         tile.transform.SetParent(tileHolder.transform);
         tile.transform.localPosition = positionToVector(position);
-        tile.GetComponent<OnHover>().enter += () => previewIngredient(selectedIngredient, position);
-        tile.GetComponent<OnHover>().exit += () => clearIngredientPreview();
-        tile.GetComponent<OnHover>().click += () => placeIngredient(selectedIngredient, position);
+        tile.transform.localScale = new Vector3(beScalar, beScalar, 1);
+        tile.GetComponent<OnEvent>().enter += () => {
+            previewIngredient(selectedIngredient, position);
+            bool canPlace = canUseIngredient(selectedIngredient, position);
+            if (!canPlace) {
+                tile.GetComponent<ColorLerp>().lerpToColor(Color.red);
+            } else {
+                tile.GetComponent<ColorLerp>().lerpToColor(Color.white);
+            }
+        };
+
+        tile.GetComponent<OnEvent>().exit += () => clearIngredientPreview();
+        tile.GetComponent<OnEvent>().click += () => placeIngredient(selectedIngredient, position);
         tiles.Add(tile.GetComponent<TileOnHover>());
+        positionToTile.Add(position, tile.GetComponent<Tile>());
     }
 
     private IBoardEntity addBoardEntity(IBoardEntity boardEntity, Position position) {
@@ -106,6 +142,7 @@ public class Board : MonoBehaviour {
             newGem.transform.localPosition = positionToVector(position);
             newGem.GetComponent<IBoardEntity>().setPosition(position);
             newGem.GetComponent<IBoardEntity>().StartBE(positionToLocalVector);
+            newGem.transform.localScale = new Vector2(beScalar, beScalar);
             board.Add(position, newGem.GetComponent<IBoardEntity>());
             return newGem.GetComponent<IBoardEntity>();
         } else {
@@ -122,7 +159,7 @@ public class Board : MonoBehaviour {
         if (board.ContainsKey(position)) {
             IBoardEntity boardEntity = board[position];
             board.Remove(position);
-            boardEntity.GetComponent<FadeOnDestroy>().Destroy(.15f);
+            boardEntity.GetComponent<FadeOnDestroy>().Destroy(.25f);
             return boardEntity;
         } else {
             return null;
@@ -173,9 +210,15 @@ public class Board : MonoBehaviour {
                 if (!board.ContainsKey(checkPosition)) {
                     falling = true;
                     dropBy.Add(dropBy[dropBy.Count-1] +1);
-                    addedBoardEntities.Add(addBoardEntity(
-                        availibleGems[UnityEngine.Random.Range(0, availibleGems.Count)], 
-                        new Position(x, height - 1 + dropBy[dropBy.Count - 1])));
+                    IBoardEntity be;
+                    if (fallingTypes.Count != 0) {
+                        be = BELibrary.Instance.get(fallingTypes[0]);
+                        fallingTypes.RemoveAt(0);
+                    } else {
+                        be = availibleGems[UnityEngine.Random.Range(0, availibleGems.Count)];
+                    }
+
+                    addedBoardEntities.Add(addBoardEntity(be, new Position(x, height - 1 + dropBy[dropBy.Count - 1])));
 
                 } else {
                     dropBy.Add(dropBy[dropBy.Count - 1]);
@@ -196,26 +239,29 @@ public class Board : MonoBehaviour {
         }
 
         if (falling) {
-            StartCoroutine(checkMatchesAfter(fallingTime + .5f));
+            StartCoroutine(checkMatchesAfter(fallingTime + .45f));
         }
 
         return 0;
     }
 
-    IEnumerator checkMatchesAfter(float time) {
+    IEnumerator checkMatchesAfter(float time, bool forceCheckFalling = false) {
         checkingMatchCoroutines++;
         yield return new WaitForSeconds(time);
         if (checkingMatchCoroutines > 0) {
             checkingMatchCoroutines--;                
         }
-        checkMatches();
+        checkMatches(forceCheckFalling);
     }
 
-    private Boolean checkingMatches() {
-        return checkingMatchCoroutines != 0;
+    public void unlockBoard() {
+        boardLocked = false;
+        foreach (TileOnHover tile in tiles) {
+            tile.checkEntered();
+        }
     }
 
-    private void checkMatches() {
+    private void checkMatches(bool forceCheckFalling = false) {
         List<Match> matches = getMatches();
         foreach (Match match in matches) {
             foreach (IBoardEntity be in match.boardEntities) {
@@ -224,11 +270,10 @@ public class Board : MonoBehaviour {
         }
         if (matches.Count > 0) {
             int currentScore = matches.Aggregate(0, (acc, match) =>  acc + match.getScoreValue());
-            if (sendToCustomer) {
-                FindObjectOfType<GemScore>().AddScore(currentScore);
-            }
-
             FindObjectOfType<SoundEffectPlayer>().PlaySoundEffect(scoreSound, .5f);
+            if (sendToCustomer) {
+                FindObjectOfType<GemScore>().AddMatches(matches);
+            }
 
             int scoreValue = 0;
             if (currentScore == 1) {
@@ -239,6 +284,7 @@ public class Board : MonoBehaviour {
                 scoreValue = 100;
             }
             score.addScore(scoreValue);
+         
 
             GameObject scoreFade = Instantiate(scoreFadePF);
             scoreFade.transform.position = matches[0].boardEntities.First().transform.position + new Vector3(0,0,-9);
@@ -246,14 +292,20 @@ public class Board : MonoBehaviour {
             currentMatches.AddRange(matches);
 
             checkFalling();
-        } else {
-            foreach (TileOnHover tile in tiles) {
-                tile.checkEntered();
-            }
+        } else if (forceCheckFalling) {
+            checkFalling();
+        } 
+        else {
             int score = currentMatches.Aggregate(0, (prod, next) => prod + next.getScoreValue());
             if (sendToCustomer) {
+                boardLocked = true;
+                fallingTypes.Clear();
                 Core.core.ExecuteAfterTime(1.0f, () => FindObjectOfType<GemScore>().SendScoreToCustomer());
                 //FindObjectOfType<CustomerManager>().ScoreNextCustomer(score);
+            } else {
+                foreach (TileOnHover tile in tiles) {
+                    tile.checkEntered();
+                }
             }
             currentMatches.Clear();
         }
@@ -268,7 +320,8 @@ public class Board : MonoBehaviour {
                 IBoardEntity be1 = get(x, y);
                 IBoardEntity be2 = get(x, y+1);
                 IBoardEntity be3 = get(x, y+2);
-                if( be1.matchable && be2.matchable && be3.matchable
+                if( be1 != null && be2 != null && be3 != null &&
+                    be1.getMatchable() && be2.getMatchable() && be3.getMatchable()
                     && be1.getType() == be2.getType() && be2.getType() == be3.getType()) {
                     matches.Add(new Match(new HashSet<IBoardEntity>() { be1, be2, be3 }));
                 }
@@ -281,7 +334,8 @@ public class Board : MonoBehaviour {
                 IBoardEntity be1 = get(x, y);
                 IBoardEntity be2 = get(x+1, y);
                 IBoardEntity be3 = get(x+2, y);
-                if (be1.matchable && be2.matchable && be3.matchable
+                if (be1 != null && be2 != null && be3 != null && 
+                    be1.getMatchable() && be2.getMatchable() && be3.getMatchable()
                     && be1.getType() == be2.getType() && be2.getType() == be3.getType()) {
                     matches.Add(new Match(new HashSet<IBoardEntity>() { be1, be2, be3 }));
                 }
@@ -317,25 +371,32 @@ public class Board : MonoBehaviour {
     }
 
     public void placeIngredient(Ingredient ingredient, Position position) {
-        clearIngredientPreview();
         if (!canUseIngredient(ingredient, position)) {
             return;
         }
+        clearIngredientPreview();
         sendToCustomer = true;
 
+        ingredient.initIngredient(removeGems, changeGems);
         realDisplacements(ingredient.getDisplacements(position));
 
         foreach (KeyValuePair<Position, IBoardEntity> entry in ingredient.boardEntities) {
             addBoardEntity(entry.Value, entry.Key + position);
         }
-        
-        checkBoardEntitiesOutofBounds();
-        StartCoroutine(checkMatchesAfter(1));
+
+        List<IBoardEntity> removedGems = checkBoardEntitiesOutofBounds();
+        ingredient.boardEntitiesPushed(removedGems);
+        ingredient.ingredientPlaced(board, position);
+        fallingTypes = ingredient.fallingTypes;
+
+        ingredientSelector.ingredientUsed(ingredient);
+
+        StartCoroutine(checkMatchesAfter(.5f, true));
     }
 
     public void previewIngredient(Ingredient ingredient, Position position) {
         clearPreviewDisplacement();
-        if (!canUseIngredient(ingredient, position)) {
+        if (!canPreviewIngredient(ingredient, position)) {
             return;
         }     
 
@@ -344,22 +405,45 @@ public class Board : MonoBehaviour {
         }
         previewBoardEntities.Clear();
 
-
         foreach (KeyValuePair<Position, IBoardEntity> boardEntity in ingredient.boardEntities) {
             GameObject gameObject = Instantiate(boardEntity.Value.gameObject);
+            gameObject.transform.localScale = new Vector3(beScalar, beScalar, 1);
             IBoardEntity be = gameObject.GetComponent<IBoardEntity>();
-            gameObject.GetComponent<Ghostable>().ghostOn();
             previewBoardEntities.Add(be);
 
             be.transform.SetParent(bEHolder.transform, false);
             be.transform.localPosition = positionToVector(position + boardEntity.Key);
 
+            if (!positionInBoard(boardEntity.Key + position)) {
+                GameObject tile = Instantiate(tilePf);
+                //tile.GetComponent<Fade>().setShow(true);
+                tile.transform.SetParent(be.transform, false);
+                tile.transform.localPosition = new Vector3(0,0,-.75f);
+
+                tile.GetComponent<Tile>().background.GetComponent<ColorLerp>().lerpToColor(Color.red);
+                tile.GetComponent<Tile>().background.GetComponent<Fade>().setShow(true);
+            } else {
+                positionToTile[boardEntity.Key + position].background.GetComponent<ColorLerp>().lerpToColor(highlightColor);
+                positionToTile[boardEntity.Key + position].background.GetComponent<Fade>().setShow(true, true);
+            }
+
+            if (ingredient.showAdjacent) {
+                foreach (Position adjacentPosition in ingredient.getAdjacentPositions()) {
+                    Position tempPosition = adjacentPosition + position;
+                    if (positionInBoard(tempPosition)) {
+                        positionToTile[adjacentPosition + position].background.GetComponent<ColorLerp>().lerpToColor(adjacentColor);
+                        positionToTile[adjacentPosition + position].background.GetComponent<Fade>().setShow(true, true);
+                    }
+                }
+            }
+
+
         }
         previewDisplacements(ingredient.getDisplacements(position));
     }
 
-    public Boolean canUseIngredient(Ingredient ingredient, Position position) {
-        if (checkingMatchCoroutines != 0) {
+    public bool canUseIngredient(Ingredient ingredient, Position position) {
+        if (!canPreviewIngredient(ingredient, position)) {
             return false;
         }
         foreach (Position position2 in ingredient.boardEntities.Keys) {
@@ -370,8 +454,40 @@ public class Board : MonoBehaviour {
         return true;
     }
 
+    public void removeGems(ISet<Position> gemsToRemove) {
+        foreach (Position position in gemsToRemove) {
+            removeBoardEntity(position);
+        }
+    }
+
+    public void changeGems(Dictionary<Position, GemType> changeGems) {
+        removeGems(new HashSet<Position>(changeGems.Keys.ToList()));
+        foreach (KeyValuePair<Position, GemType> entry in changeGems) {
+            addBoardEntity(BELibrary.Instance.get(entry.Value), entry.Key);
+        }
+    }
+
+    public bool canPreviewIngredient(Ingredient ingredient, Position position) {
+        if (checkingMatchCoroutines != 0) {
+            return false;
+        }
+        if (boardLocked) {
+            return false;
+        }
+   
+        return true;
+    }
+
     public void clearIngredientPreview() {
         clearPreviewDisplacement();
+
+        foreach (Tile tile in positionToTile.Values) {
+            tile.background.GetComponent<Fade>().setShow(false, true);
+        }
+
+        foreach (IBoardEntity boardEntity in board.Values) {
+            boardEntity.GetComponent<Fade>().setTransparent(1);
+        }
 
         foreach (IBoardEntity oldBoardEntity in previewBoardEntities) {
             Destroy(oldBoardEntity.gameObject);
@@ -388,6 +504,9 @@ public class Board : MonoBehaviour {
     private void doPreviewDisplacement(Dictionary<Position, Position> displacements) {
         foreach (KeyValuePair<Position, Position> displacement in displacements) {
             board[displacement.Key].setDisplacementTimed(displacement.Value, displaceTime);
+            if (!positionInBoard(displacement.Key + displacement.Value)) {
+                board[displacement.Key].GetComponent<Fade>().setTransparent(.5f);
+            }
         }
     }
     
@@ -436,14 +555,17 @@ public class Board : MonoBehaviour {
         }
     }
 
-    public void checkBoardEntitiesOutofBounds() {
+    public List<IBoardEntity> checkBoardEntitiesOutofBounds() {
+        List<IBoardEntity> removedGems = new List<IBoardEntity>();
         foreach (KeyValuePair<Position, IBoardEntity> entry in board) {
             if (!positionInBoard(entry.Key)) {
+                removedGems.Add(entry.Value);
                 Destroy(entry.Value.gameObject);
             }
         }
         board = board.Where(i => positionInBoard(i.Key))
          .ToDictionary(i => i.Key, i => i.Value);
+        return removedGems;
     }
 
   
@@ -458,10 +580,10 @@ public class Board : MonoBehaviour {
     }
 
     private Vector3 positionToVector (Position position) {
-        return new Vector3(position.x * gemWidth - (gemWidth * width /2 - gemWidth/2), position.y * gemHeight);
+        return new Vector3(position.x * gemWidth - (gemWidth * width /2 - gemWidth/2), position.y * gemHeight + (gemHeight / 2));
     }
 
     private Vector3 positionToLocalVector(Position position) {
-        return new Vector3(position.x * gemWidth, position.y * gemHeight);
+        return new Vector3(position.x * gemWidth, position.y * gemHeight) / beScalar;
     }
 }

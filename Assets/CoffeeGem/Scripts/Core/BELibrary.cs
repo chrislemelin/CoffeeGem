@@ -9,11 +9,11 @@ public class BELibrary : MonoBehaviour {
     [SerializeField]
     private List<GameObject> bEGameObjects;
     [SerializeField]
-    private List<BEType> bETypes;
+    private List<GemType> bETypes;
 
-    private Dictionary<BEType, GameObject> dictionary = new Dictionary<BEType, GameObject>();
+    private Dictionary<GemType, GameObject> dictionary = new Dictionary<GemType, GameObject>();
 
-    public IBoardEntity get(BEType type) {
+    public IBoardEntity get(GemType type) {
         return dictionary[type].GetComponent<IBoardEntity>();
     }
 
@@ -24,8 +24,6 @@ public class BELibrary : MonoBehaviour {
             makeDictionaries();
             Instance = this;
         }
-
-        DontDestroyOnLoad(this);
     }
 
     private void makeDictionaries() {

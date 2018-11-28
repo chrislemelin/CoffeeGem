@@ -97,6 +97,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ghostSprite: {fileID: 1203617253713778}
   type: 3
+  matchable: 1
 --- !u!114 &114816550504234246
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -120,9 +121,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2aab2d880f1a843449b28c7c71fe0225, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderers:
-  - {fileID: 212415618435913714}
-  textMeshes: []
+  targetAlpha: 1
+  duration: 1
+  target: {fileID: 0}
 --- !u!212 &212415618435913714
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -175,7 +176,7 @@ RectTransform:
   m_GameObject: {fileID: 1510862803647580}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.84033614, y: 0.84033614, z: 0}
   m_Children:
   - {fileID: 4255019031401342}
   m_Father: {fileID: 0}

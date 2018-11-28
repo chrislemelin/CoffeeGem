@@ -30,6 +30,14 @@ public class IngredientLibrary : MonoBehaviour {
         ingredients.Add(new BasicGreenIngredient());
         ingredients.Add(new BasicYellowIngredient());
 
+        ingredients.Add(new BasicBlue2Ingredient());
+        ingredients.Add(new BasicRed2Ingredient());
+        ingredients.Add(new BasicGreen2Ingredient());
+        ingredients.Add(new BasicYellow2Ingredient());
+
+        ingredients.Add(new ChangeColorIngredient());
+        ingredients.Add(new ColorDestroyIngredient());
+
         foreach (Ingredient ingredient in ingredients) {
             ingredientsDict.Add(ingredient.type, ingredient);
         }
@@ -37,4 +45,5 @@ public class IngredientLibrary : MonoBehaviour {
     }
 }
 
-public enum IngredientType { BasicRed, BasicBlue, BasicGreen, BasicYellow }
+public enum IngredientType { BasicRed, BasicBlue, BasicGreen, BasicYellow,
+                            BasicRed2, BasicBlue2, BasicGreen2, BasicYellow2, BlueToPurple, YellowDestroy}

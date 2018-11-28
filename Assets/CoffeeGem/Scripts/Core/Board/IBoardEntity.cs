@@ -4,12 +4,18 @@ using UnityEngine;
 public abstract class IBoardEntity: ILerpable {
 
     [SerializeField]
-    private BEType type;
+    private GemType type;
 
     public Position position { get; private set; } = new Position(-1, -1);
-    public bool matchable { get; private set; } = true;
+
+    [SerializeField]
+    private bool matchable = true;
     public Position displacementPosition { get; private set; }
     private Func<Position, Vector3> positionToVector;
+
+    public bool getMatchable() {
+        return matchable;
+    }
 
     public void StartBE(Func<Position, Vector3> positionToVector) {
         this.positionToVector = positionToVector;
@@ -45,7 +51,7 @@ public abstract class IBoardEntity: ILerpable {
         this.position = new Position(position.x, position.y);
     }
 
-    public BEType getType() {
+    public GemType getType() {
         return type;
     }
 
@@ -58,4 +64,4 @@ public abstract class IBoardEntity: ILerpable {
 
 
 }
-public enum BEType { YellowGem, RedGem, BlueGem, GreenGem, WhiteGem};
+public enum GemType { YellowGem, RedGem, BlueGem, GreenGem, PurpleGem, Blocker};

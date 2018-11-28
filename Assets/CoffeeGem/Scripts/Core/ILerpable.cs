@@ -83,7 +83,7 @@ public class ILerpable : MonoBehaviour {
                 ratio = (Time.time - startLerpTime) / lerpDuration;
             }
      
-            transform.localPosition = Vector3.Lerp(lerpingFromVector, lerpingToVector, ratio);
+            transform.localPosition = Vector3.Lerp(lerpingFromVector, lerpingToVector, Mathf.SmoothStep(0.0f, 1.0f, ratio));
             if (ratio >= 1) {
                 isLerping = false;
             }
