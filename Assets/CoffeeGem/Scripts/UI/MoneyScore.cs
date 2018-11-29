@@ -53,7 +53,7 @@ public class MoneyScore : MonoBehaviour {
 
     public void addScore(int score) {
         this.score += score;
-        moneyChangedEvent?.Invoke(score);
+        moneyChangedEvent?.Invoke(this.score);
 
         if (score > 0) {
             GameObject scoreFade = Instantiate(scorePF);

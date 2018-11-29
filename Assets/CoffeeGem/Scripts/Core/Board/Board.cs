@@ -390,6 +390,7 @@ public class Board : MonoBehaviour {
         fallingTypes = ingredient.fallingTypes;
 
         ingredientSelector.ingredientUsed(ingredient);
+        sendToCustomer = !ingredient.bonusPlacement;
 
         StartCoroutine(checkMatchesAfter(.5f, true));
     }

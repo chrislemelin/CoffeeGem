@@ -14,9 +14,9 @@ public class Shop : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.BasicBlue2, 1000));
+        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.BasicBlue2, 500));
+        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.BlueToPurple, 500));
         shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.YellowDestroy, 1000));
-        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.BlueToPurple, 1000));
 
 
         shopItems.ForEach(item => addShopItem(item.Key, item.Value));
