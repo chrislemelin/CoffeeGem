@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Ingredient {
@@ -11,14 +12,16 @@ public class Ingredient {
 
     public List<GemType> fallingTypes { get; protected set; } = new List<GemType>();
     public string title { get; protected set; }
-    public string flavorText;
-    public string description;
+    public string flavorText { get; protected set; }
+    public string description { get; protected set; }
 
-    public bool bonusPlacement = false;
-    public bool showAdjacent;
+    public bool bonusPlacement { get; protected set; } = false;
+    public List<IngredientMatch> bonusMatches = new List<IngredientMatch>();
+    public bool showAdjacent { get; protected set; }
+  
 
-    public Action<ISet<Position>> deleteGems;
-    public Action<Dictionary<Position, GemType>> changeGems;
+    protected Action<ISet<Position>> deleteGems;
+    protected Action<Dictionary<Position, GemType>> changeGems;
 
     public Ingredient() {
         description = "A basic ingredient";
@@ -27,16 +30,21 @@ public class Ingredient {
 
     public static Ingredient copy(Ingredient other) {
         Ingredient ingredient = (Ingredient)other.GetType().GetConstructor(Type.EmptyTypes).Invoke(null);
-        ingredient.boardEntities = other.boardEntities;
-        ingredient.displacementType = other.displacementType;
-        ingredient.type = other.type;
+        //ingredient.boardEntities = other.boardEntities;
+        //ingredient.displacementType = other.displacementType;
+        //ingredient.type = other.type;
 
-        ingredient.title = other.title;
-        ingredient.flavorText = other.flavorText;
-        ingredient.description = other.description;
-        ingredient.fallingTypes = new List<GemType>(other.fallingTypes);
-        ingredient.bonusPlacement = other.bonusPlacement;
+        //ingredient.title = other.title;
+        //ingredient.flavorText = other.flavorText;
+        //ingredient.description = other.description;
+        //ingredient.fallingTypes = new List<GemType>(other.fallingTypes);
+        //ingredient.bonusPlacement = other.bonusPlacement;
+        //ingredient.bonusMatchScores = other.bonusMatchScores;
         return ingredient;
+    }
+
+    public List<IngredientMatch> getBonusMatches(Position position) {
+        return bonusMatches.Select((match) => new IngredientMatch(match.score, match.type, position)).ToList();
     }
 
     public void initIngredient(Action<ISet<Position>> deleteGems, Action<Dictionary<Position, GemType>> changeGems) {

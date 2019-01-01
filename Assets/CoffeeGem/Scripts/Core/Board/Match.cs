@@ -4,33 +4,22 @@ using UnityEngine;
 
 public class Match {
 
-    public HashSet<IBoardEntity> boardEntities { get; }
+    public MatchScore score { get; }
+    public GemType type { get; }
+    public Position position { get; }
+    public IToMatch source { get; }
 
-    public Match(HashSet<IBoardEntity> boardEntities) {
-        this.boardEntities = boardEntities;
+    public Match(MatchScore score, GemType type, Position position, IToMatch source) {
+        this.type = type;
+        this.score = score;
+        this.position = position;
+        this.source = source;
     }
 
-    public MatchScore getScore() {
-        if (boardEntities.Count <= 3) {
-            return MatchScore.one;
-        } else if (boardEntities.Count == 4) {
-            return MatchScore.two;
-        } else {
-            return MatchScore.three;
-        }
-
-    }
     public int getScoreValue() {
-        if (boardEntities.Count <= 3) {
-            return 1;
-        } else if (boardEntities.Count == 4) {
-            return 2;
-        } else {
-            return 3;
-        }
-
+        return (int)score;
     }
 
 }
 
-public enum MatchScore { one, two, three }
+public enum MatchScore { one = 1, two = 2, three = 3 }

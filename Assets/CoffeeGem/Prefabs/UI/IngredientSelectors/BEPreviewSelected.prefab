@@ -20,7 +20,6 @@ GameObject:
   m_Component:
   - component: {fileID: 224714130677348462}
   - component: {fileID: 114560977932872248}
-  - component: {fileID: 114056592598262512}
   m_Layer: 0
   m_Name: BEPreviewSelected
   m_TagString: Untagged
@@ -28,20 +27,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &114056592598262512
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1132574425221394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2aab2d880f1a843449b28c7c71fe0225, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetAlpha: 0
-  duration: 1
-  target: {fileID: 0}
 --- !u!114 &114560977932872248
 MonoBehaviour:
   m_ObjectHideFlags: 1

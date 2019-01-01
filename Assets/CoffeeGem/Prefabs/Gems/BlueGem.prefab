@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4068337485266540}
   - component: {fileID: 212977494178698950}
   m_Layer: 0
-  m_Name: New Sprite
+  m_Name: Gem Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -4,4 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/CoffeeGem/Scenes/loadout.unity
+    guid: 7c93f018326e9924ca845fac0a0632cc
+  - enabled: 1
+    path: Assets/CoffeeGem/Scenes/CoffeeCounter.unity
+    guid: 2062c4c32e0f591469bd3af4d0cd2cc1

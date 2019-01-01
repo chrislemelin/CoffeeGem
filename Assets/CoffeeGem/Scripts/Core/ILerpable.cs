@@ -57,8 +57,6 @@ public class ILerpable : MonoBehaviour {
     }
 
     public void Update() {
- 
-
         if (isGhostLerping && isLerping) {
             isGhostLerping = false;
             ghostSprite.transform.localPosition = new Vector3(0,0,0);

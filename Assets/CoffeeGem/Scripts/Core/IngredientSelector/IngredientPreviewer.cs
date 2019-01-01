@@ -1,12 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class IngredientPreviewer : MonoBehaviour {
 
     [SerializeField]
+    private IngredientType defaultIngredient;
+    [SerializeField]
+    private bool hasDefaultIngredient = true;
+
+    [SerializeField]
     GameObject direction;
+
+    [SerializeField]
+    protected bool ui = false;
+
+    [SerializeField]
+    private TextMeshProUGUI textUI;
 
     [SerializeField]
     private GameObject boardEntityPreviewPf;
@@ -16,6 +28,8 @@ public class IngredientPreviewer : MonoBehaviour {
 
     private GameObject boardEntityPreviewHolder;
 
+    public Ingredient renderedIngredient { get; protected set; }
+
     [SerializeField]
     private GameObject previewTarget;
 
@@ -23,9 +37,11 @@ public class IngredientPreviewer : MonoBehaviour {
         if (previewTarget == null) {
             previewTarget = gameObject;
         }
+        //renderPreview(null);
     }
 
     protected List<SpriteRenderer> getPreviewSpriteRenderers(Ingredient ingredient) {
+        renderedIngredient = ingredient;
         List<SpriteRenderer> returnRenderers = new List<SpriteRenderer>();
         Position max = ingredient.getMaxPosition();
         Position min = ingredient.getMinPosition();
@@ -50,21 +66,30 @@ public class IngredientPreviewer : MonoBehaviour {
         copySpriteRenderer.color = renderer.color;
     }
 
-    Component CopyComponent(Component original, GameObject destination) {
-        System.Type type = original.GetType();
-        Component copy = destination.AddComponent(type);
-        // Copied fields can be restricted with BindingFlags
-        System.Reflection.FieldInfo[] fields = type.GetFields();
-        foreach (System.Reflection.FieldInfo field in fields) {
-            field.SetValue(copy, field.GetValue(original));
-        }
-        return copy;
+    protected void copySpriteRenderToUI(SpriteRenderer renderer, GameObject gameObject) {
+        gameObject.AddComponent<Image>();
+        Image copyImage = gameObject.GetComponent<Image>();
+        copyImage.sprite = renderer.sprite;
+        copyImage.color = renderer.color;
     }
 
     public void renderPreview(Ingredient ingredient) {
         if (boardEntityPreviewHolder != null) {
             boardEntityPreviewHolder.GetComponent<FadeOnDestroy>().Destroy(1);
-            boardEntityPreviewHolder.GetComponent<ILerpable>().lerpToTimed(boardEntityPreviewHolder.transform.localPosition + new Vector3(0, -1), 1);
+            boardEntityPreviewHolder.GetComponent<ILerpable>().lerpToTimed(boardEntityPreviewHolder.transform.localPosition + new Vector3(0, ui ? -50 : -1), 1);
+        }
+
+        if (ingredient == null) {
+            direction.SetActive(false);
+            if (ui) {
+                textUI.text = "none";
+            }
+            return;
+        } else {
+            direction.SetActive(true);
+            if (ui) {
+                textUI.text = "";
+            }
         }
 
         Position ingredientDimensions = ingredient.getDimensions();
@@ -72,23 +97,30 @@ public class IngredientPreviewer : MonoBehaviour {
         boardEntityPreviewHolder = Instantiate(boardEntityPreviewHolderPf);
         boardEntityPreviewHolder.transform.SetParent(previewTarget.transform, false);
         boardEntityPreviewHolder.GetComponent<GridLayoutGroup>().constraintCount = ingredientDimensions.x;
-        boardEntityPreviewHolder.transform.localPosition = new Vector3(0, 1);
+        boardEntityPreviewHolder.transform.localPosition = new Vector3(0, ui ? 50 : 1);
         
 
         foreach (SpriteRenderer render in getPreviewSpriteRenderers(ingredient)) {
             GameObject preview = Instantiate(boardEntityPreviewPf);
             if (render != null) {
-                copySpriteRender(render, preview);
+                if (ui) {
+                    copySpriteRenderToUI(render, preview);
+                } else {
+                    copySpriteRender(render, preview);
+                }
             }
             preview.transform.SetParent(boardEntityPreviewHolder.transform, false);
-
-            preview.gameObject.GetComponent<Fade>().checkShow();
         }
         boardEntityPreviewHolder.GetComponent<ILerpable>().lerpToTimed(new Vector2(0, 0), 1);
 
         boardEntityPreviewHolder.GetComponent<Fade>().setShow(false, true);
-        boardEntityPreviewHolder.gameObject.GetComponent<Fade>().checkShow();
+        boardEntityPreviewHolder.gameObject.GetComponent<Fade>().init();
         boardEntityPreviewHolder.GetComponent<Fade>().setShow(true);
+
+        Fade fade = gameObject.transform.parent.GetComponent<Fade>();
+        if(fade != null) {
+            fade.recheckDict();
+        }
 
         if (direction != null) {
             switch (ingredient.displacementType) {

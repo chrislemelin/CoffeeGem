@@ -36,15 +36,14 @@ public class GemScore : MonoBehaviour {
     }
 
 
-    public void AddMatches(List<Match> matches) {
+    public void AddMatches(List<Match> matches, Board board) {
         int currentScore = matches.Aggregate(0, (acc, match) => acc + match.getScoreValue());
     
         int tempscore = score;
         foreach (Match match in matches) {
             for (int a = 0; a < Mathf.Min(match.getScoreValue(), maxScore - tempscore); a++) {
                 GameObject pipScore = Instantiate(scorePipPF);
-                IBoardEntity targetGem = match.boardEntities.First();
-                pipScore.GetComponent<ScorePip>().SetGem(targetGem);
+                pipScore.GetComponent<ScorePip>().setGem(match.type, board.get(match.position).transform.position);
                 pipScore.GetComponent<ILerpable>().lerpTo(gemPips[a + tempscore].transform.position, 5);
                 pipScores.Add(pipScore);
             }
@@ -62,21 +61,23 @@ public class GemScore : MonoBehaviour {
     public void SendScoreToCustomer() {
         GameObject coffee = Instantiate(coffeePF);
         coffee.transform.position = transform.position + new Vector3(.5f,0,0);
+        coffee.GetComponent<Fade>().init();
         coffee.GetComponent<Fade>().setShow(true);
         coffee.GetComponent<ILerpable>().lerpTo(coffee.transform.position + new Vector3(0f, 1.25f, 0), 3.0f);
         ClearScore();
         soundEffectPlayer.PlaySoundEffect(coffeeFillSound);
 
-        Core.core.ExecuteAfterTime(1f, () => {
-            board.unlockBoard();
-        });
-
+        if (customerManager.customersServed +1 < customerManager.customersPerDay) {
+            Core.core.ExecuteAfterTime(1f, () => {
+                board.unlockBoard();
+            });
+        }
+       
         Core.core.ExecuteAfterTime(coffeeDuration, () => {
             coffee.GetComponent<FadeOnDestroy>().Destroy();
             SendScoreToCustomerDelayed();
-         });
-
-
+        });
+        
     }
 
     private void SendScoreToCustomerDelayed() {

@@ -5,17 +5,23 @@ using UnityEngine;
 
 public class FadeOnDestroy : Fade {
 
+    [SerializeField]
     private float fadeTime = 1;
 
-    public void Destroy(float fadeTime, float delay = 0, Action action = null) {
-        setDuration(fadeTime);
-        setShow(false);
+    public void Destroy(float fadeTime, float delay = 0, Action action = null, float destroyDelay = 0) {
+        Core.core.ExecuteAfterTime(delay, () => {
+            setDuration(fadeTime);
+            setShow(false);
 
-        StartCoroutine(DestroyHelper(fadeTime, action));
+            StartCoroutine(DestroyHelper(fadeTime + destroyDelay, action));
+        });   
     }
+
+  
 
     IEnumerator DestroyHelper(float fadeTime, Action action) {
         yield return new WaitForSeconds(fadeTime);
+
         action?.Invoke();
         Destroy(target);
     }

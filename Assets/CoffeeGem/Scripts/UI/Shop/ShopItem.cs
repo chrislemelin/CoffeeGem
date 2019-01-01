@@ -45,14 +45,14 @@ public class ShopItem : MonoBehaviour {
             moneyScore.removeMoney(cost);
             ingredientSelector.addIngredient(ingredient.type);
             disabled = true;
-            Destroy(gameObject);
+            GetComponent<FadeOnDestroy>().Destroy(1f, destroyDelay: .5f);
             FindObjectOfType<SoundEffectPlayer>().PlaySoundEffect(audioClip);
+            buyButton.enabled = false;
         }
     }
 
     private void OnDestroy() {
         moneyScore.moneyChangedEvent -= checkMoneyBalance;
-
     }
 
 }

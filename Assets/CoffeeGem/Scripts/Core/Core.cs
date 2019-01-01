@@ -7,7 +7,10 @@ public class Core : MonoBehaviour {
     static public Core core; 
 
     void Awake() {
-        core = this; 
+        if (core == null) {
+            core = this;
+
+        }
     }
 
     public void ExecuteAfterTime(float time, Action action) {

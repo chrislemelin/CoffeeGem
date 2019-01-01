@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Board : MonoBehaviour {
+public class Board : BoardPlacedIngredientManager {
 
     [SerializeField]
     private float boardWidth;
@@ -40,28 +40,29 @@ public class Board : MonoBehaviour {
     [SerializeField]
     private AudioClip scoreSound;
 
+    private bool init = false;
+    private bool started = false;
     private bool boardLocked = false;
     private float gemHeight;
     private float gemWidth;
     private int checkingMatchCoroutines = 0;
     private float beScalar;
-    private int extraIngredient;
 
     private List<IBoardEntity> previewBoardEntities = new List<IBoardEntity>();
     private List<TileOnHover> tiles = new List<TileOnHover>();
     private Dictionary<Position, Tile> positionToTile = new Dictionary<Position, Tile>();
     private Ingredient selectedIngredient;
     private IngredientSelector ingredientSelector;
+    private MatchCalculator matchCalculator;
 
     private Dictionary<Position, IBoardEntity> board = new Dictionary<Position, IBoardEntity>();
-    private Boolean sendToCustomer;
-    private List<Match> currentMatches = new List<Match>();
-    private List<GemType> fallingTypes = new List<GemType>();
+    private List<BoardMatch> currentBoardMatches = new List<BoardMatch>();
+    private List<IToMatch> currentMatches = new List<IToMatch>();
 
     // Use this for initialization
     void Start () {
         ingredientSelector = FindObjectOfType<IngredientSelector>();
-
+        matchCalculator = MatchCalculator.matchCalculator;
         float targetGemWidth = boardWidth / width;
 
 
@@ -75,9 +76,16 @@ public class Board : MonoBehaviour {
         gemWidth = targetGemWidth;
         gemHeight = targetGemWidth;
 
-        selectedIngredient = new BasicRedIngredient();
-        populateBoard();
-        StartCoroutine(checkMatchesAfter(1));
+        selectedIngredient = null;
+        DayManager.dayManager.start += () => {
+            populateBoard();
+            unlockBoard();
+            //checkMatchesAfterHelper(1);
+        };
+        DayManager.dayManager.end += () => {
+            clearBoard();
+            started = false;          
+        };
     }
 
     public void setIngredient(Ingredient ingredient) {
@@ -99,15 +107,23 @@ public class Board : MonoBehaviour {
     }
 
     private void populateBoard() {
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                addBoardEntity(availibleGems[UnityEngine.Random.Range(0, availibleGems.Count)], new Position(x, y));
-                addTile(new Position(x, y));
+        if (!init) {
+            init = true;
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    //addBoardEntity(availibleGems[UnityEngine.Random.Range(0, availibleGems.Count)], new Position(x, y));
+                    addTile(new Position(x, y));
+                }
             }
         }
+        checkFalling();
     }
 
-    private IBoardEntity get(int x, int y) {
+    public IBoardEntity get(Position position) {
+        return get(position.x, position.y);
+    }
+
+    public IBoardEntity get(int x, int y) {
         if (board.ContainsKey(new Position(x, y)))
             return board[new Position(x, y)];
         else 
@@ -135,7 +151,7 @@ public class Board : MonoBehaviour {
         positionToTile.Add(position, tile.GetComponent<Tile>());
     }
 
-    private IBoardEntity addBoardEntity(IBoardEntity boardEntity, Position position) {
+    private IBoardEntity addBoardEntity(IBoardEntity boardEntity, Position position, bool show = true) {
         if (!board.ContainsKey(position)) {
             GameObject newGem = Instantiate(boardEntity.gameObject);
             newGem.transform.SetParent(bEHolder.transform, false);
@@ -143,6 +159,7 @@ public class Board : MonoBehaviour {
             newGem.GetComponent<IBoardEntity>().setPosition(position);
             newGem.GetComponent<IBoardEntity>().StartBE(positionToLocalVector);
             newGem.transform.localScale = new Vector2(beScalar, beScalar);
+            newGem.GetComponent<Fade>().setShow(show, true);
             board.Add(position, newGem.GetComponent<IBoardEntity>());
             return newGem.GetComponent<IBoardEntity>();
         } else {
@@ -155,7 +172,17 @@ public class Board : MonoBehaviour {
         checkFalling();
     }
 
-    public IBoardEntity removeBoardEntity (Position position) {
+    public IBoardEntity removeBoardEntitySlow(Position position) {
+        if (board.ContainsKey(position)) {
+            IBoardEntity boardEntity = board[position];
+            boardEntity.GetComponent<FadeOnDestroy>().setDuration(2.0f);
+            return removeBoardEntity(position);
+        } else {
+            return null;
+        }
+    }
+
+    public IBoardEntity removeBoardEntity(Position position) {
         if (board.ContainsKey(position)) {
             IBoardEntity boardEntity = board[position];
             board.Remove(position);
@@ -196,29 +223,29 @@ public class Board : MonoBehaviour {
         return 0;
     }
 
-    public float checkFalling() {
+    public bool checkFalling() {
         bool falling = false;
         float fallingTime = 0;
 
         for (int x = 0; x < width; x++) {
             List<int> dropBy = new List<int>();
             dropBy.Add(0);
-            List<IBoardEntity> addedBoardEntities = new List<IBoardEntity>();// = addBoardEntity()
+            List<IBoardEntity> addedBoardEntities = new List<IBoardEntity>();
 
             for (int y = 0; y < height; y++) {
                 Position checkPosition = new Position(x, y);
                 if (!board.ContainsKey(checkPosition)) {
                     falling = true;
-                    dropBy.Add(dropBy[dropBy.Count-1] +1);
+                    dropBy.Add(dropBy[dropBy.Count - 1] + 1);
                     IBoardEntity be;
-                    if (fallingTypes.Count != 0) {
-                        be = BELibrary.Instance.get(fallingTypes[0]);
-                        fallingTypes.RemoveAt(0);
+                    if (getPlacedIngredientFallingTypes().Count != 0) {
+                        be = BELibrary.Instance.get(getPlacedIngredientFallingTypes()[0]);
+                        getPlacedIngredientFallingTypes().RemoveAt(0);
                     } else {
                         be = availibleGems[UnityEngine.Random.Range(0, availibleGems.Count)];
                     }
 
-                    addedBoardEntities.Add(addBoardEntity(be, new Position(x, height - 1 + dropBy[dropBy.Count - 1])));
+                    addedBoardEntities.Add(addBoardEntity(be, new Position(x, height - 1 + dropBy[dropBy.Count - 1]), false));
 
                 } else {
                     dropBy.Add(dropBy[dropBy.Count - 1]);
@@ -232,150 +259,126 @@ public class Board : MonoBehaviour {
                 }
             }
 
-            foreach (IBoardEntity currentAddedBordEntity in addedBoardEntities){
+            foreach (IBoardEntity currentAddedBordEntity in addedBoardEntities) {
+                Position oldPosition = currentAddedBordEntity.position;
                 fallingTime = Math.Max(fallingTime, moveBoardEntity(currentAddedBordEntity, currentAddedBordEntity.position + new Position(0, -dropBy[dropBy.Count - 1])));
+                if (!positionInBoard(oldPosition)) {
+                    float dropRatio = ((float)oldPosition.y - height) / dropBy[dropBy.Count - 1];
+                    Core.core.ExecuteAfterTime(fallingTime * dropRatio, () => {
+                        currentAddedBordEntity.GetComponent<FadeOnDestroy>().setDuration(fallingTime / dropBy[dropBy.Count - 1] * 2 / 3 );
+                        currentAddedBordEntity.GetComponent<Fade>().setShow(true);
+                    });
+                }
             }
 
         }
-
         if (falling) {
-            StartCoroutine(checkMatchesAfter(fallingTime + .45f));
+            checkMatchesAfterHelper(fallingTime + .45f, sendScoreToCustomer: placedIngredient != null ? !placedIngredient.bonusPlacement : false);
         }
-
-        return 0;
+        return falling;
     }
 
-    IEnumerator checkMatchesAfter(float time, bool forceCheckFalling = false) {
+    public void checkMatchesAfterHelper(float time, bool forceCheckFalling = false, bool sendScoreToCustomer = true) {
+        StartCoroutine(checkMatchesAfter(time, forceCheckFalling, sendScoreToCustomer));
+    }
+
+    IEnumerator checkMatchesAfter(float time, bool forceCheckFalling = false, bool sendScoreToCustomer = true) {
         checkingMatchCoroutines++;
         yield return new WaitForSeconds(time);
         if (checkingMatchCoroutines > 0) {
             checkingMatchCoroutines--;                
         }
-        checkMatches(forceCheckFalling);
+        checkMatches(forceCheckFalling, sendScoreToCustomer);
     }
 
     public void unlockBoard() {
         boardLocked = false;
         foreach (TileOnHover tile in tiles) {
             tile.checkEntered();
+        }      
+    }
+
+    public void clearBoard() {
+        List<Position> positions = board.Keys.ToList();
+        foreach (Position position in positions) {
+            removeBoardEntitySlow(position);
         }
     }
 
-    private void checkMatches(bool forceCheckFalling = false) {
-        List<Match> matches = getMatches();
-        foreach (Match match in matches) {
-            foreach (IBoardEntity be in match.boardEntities) {
-                removeBoardEntity(be.position);
+    private void addToCurrentMatches(IEnumerable<IToMatch> toMathces, bool recordMatches = true) {
+        //int currentScore = boardMatches.Aggregate(0, (acc, match) => acc + match.getScoreValue());
+        FindObjectOfType<SoundEffectPlayer>().PlaySoundEffect(scoreSound, .5f);
+        if (recordMatches) {
+            List<Match> matches = toMathces.Select((match) => match.toMatch()).ToList();
+            if (started) {
+                FindObjectOfType<GemScore>().AddMatches(matches, this);
             }
         }
-        if (matches.Count > 0) {
-            int currentScore = matches.Aggregate(0, (acc, match) =>  acc + match.getScoreValue());
-            FindObjectOfType<SoundEffectPlayer>().PlaySoundEffect(scoreSound, .5f);
-            if (sendToCustomer) {
-                FindObjectOfType<GemScore>().AddMatches(matches);
+
+  
+        // currentMatches.AddRange(toMathces);
+        //    this is the old scoring system
+        //  int scoreValue = 0;
+        //    if (currentScore == 1) {
+        //        scoreValue = 10;
+        //    } else if (currentScore == 2) {
+        //        scoreValue = 25;
+        //    } else if (currentScore >= 3) {
+        //        scoreValue = 100;
+        //    }
+        //    score.addScore(scoreValue);
+
+        //GameObject scoreFade = Instantiate(scoreFadePF);
+        //scoreFade.transform.position = boardMatches[0].boardEntities.First().transform.position + new Vector3(0, 0, -9);
+        //scoreFade.GetComponent<ScoreFade>().setScore(scoreValue);
+        //currentBoardMatches.AddRange(boardMatches);       
+    }
+
+    private void checkMatches(bool forceCheckFalling = false, bool sendScoreToCustomer = true) {
+        List<BoardMatch> boardMatches = matchCalculator.getMatches(board, width, height);
+        sendScoreToCustomer = sendScoreToCustomer && started;
+       
+        if (boardMatches.Count > 0) {
+            addToCurrentMatches(boardMatches, started);
+
+            foreach (BoardMatch boardMatch in boardMatches) {
+                foreach (IBoardEntity be in boardMatch.boardEntities) {
+                    removeBoardEntity(be.position);
+                }
             }
-
-            int scoreValue = 0;
-            if (currentScore == 1) {
-                scoreValue = 10;
-            } else if (currentScore == 2) {
-                scoreValue = 25;
-            } else if (currentScore >= 3) {
-                scoreValue = 100;
-            }
-            score.addScore(scoreValue);
-         
-
-            GameObject scoreFade = Instantiate(scoreFadePF);
-            scoreFade.transform.position = matches[0].boardEntities.First().transform.position + new Vector3(0,0,-9);
-            scoreFade.GetComponent<ScoreFade>().setScore(scoreValue);
-            currentMatches.AddRange(matches);
-
-            checkFalling();
-        } else if (forceCheckFalling) {
             checkFalling();
         } 
         else {
-            int score = currentMatches.Aggregate(0, (prod, next) => prod + next.getScoreValue());
-            if (sendToCustomer) {
-                boardLocked = true;
-                fallingTypes.Clear();
-                Core.core.ExecuteAfterTime(1.0f, () => FindObjectOfType<GemScore>().SendScoreToCustomer());
-                //FindObjectOfType<CustomerManager>().ScoreNextCustomer(score);
-            } else {
-                foreach (TileOnHover tile in tiles) {
-                    tile.checkEntered();
+            if ((forceCheckFalling && !checkFalling()) || !forceCheckFalling) {
+                int score = currentBoardMatches.Aggregate(0, (prod, next) => prod + next.getScoreValue());
+                getPlacedIngredientFallingTypes().Clear();
+                if (sendScoreToCustomer) {
+                    boardLocked = true;
+                    Core.core.ExecuteAfterTime(1.0f, () => FindObjectOfType<GemScore>().SendScoreToCustomer());
+                } else {
+                    foreach (TileOnHover tile in tiles) {
+                        tile.checkEntered();
+                    }
+                }
+                currentBoardMatches.Clear();
+            }
+
+            foreach (BoardMatch match in boardMatches) {
+                foreach (IBoardEntity be in match.boardEntities) {
+                    removeBoardEntity(be.position);
                 }
             }
-            currentMatches.Clear();
         }
-    }
-
-    private List<Match> getMatches() {
-        List<Match> matches = new List<Match>();
         
-        //check cols
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height - 2; y++) {
-                IBoardEntity be1 = get(x, y);
-                IBoardEntity be2 = get(x, y+1);
-                IBoardEntity be3 = get(x, y+2);
-                if( be1 != null && be2 != null && be3 != null &&
-                    be1.getMatchable() && be2.getMatchable() && be3.getMatchable()
-                    && be1.getType() == be2.getType() && be2.getType() == be3.getType()) {
-                    matches.Add(new Match(new HashSet<IBoardEntity>() { be1, be2, be3 }));
-                }
-            }
-        }
-
-        //check rows
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width - 2; x++) {
-                IBoardEntity be1 = get(x, y);
-                IBoardEntity be2 = get(x+1, y);
-                IBoardEntity be3 = get(x+2, y);
-                if (be1 != null && be2 != null && be3 != null && 
-                    be1.getMatchable() && be2.getMatchable() && be3.getMatchable()
-                    && be1.getType() == be2.getType() && be2.getType() == be3.getType()) {
-                    matches.Add(new Match(new HashSet<IBoardEntity>() { be1, be2, be3 }));
-                }
-            }
-        }
-
-        List<Match> combinedMatches = new List<Match>();
-        ISet<Match> usedMatches = new HashSet<Match>();
-        foreach (Match match1 in matches) {
-            foreach (Match match2 in matches) {
-                if (match1 == match2 || usedMatches.Contains(match1) || usedMatches.Contains(match2)) {
-                    continue;
-                }
-                if (match1.boardEntities.Overlaps(match2.boardEntities)) {
-                    HashSet<IBoardEntity> combindedHashSet = new HashSet<IBoardEntity>(match1.boardEntities);
-                    combindedHashSet.UnionWith(match2.boardEntities);
-                    usedMatches.Add(match1);
-                    usedMatches.Add(match2);
-                    combinedMatches.Add(new Match(combindedHashSet));
-                }
-            }
-        }
-        List<Match> newMatches = new List<Match>();
-        foreach (Match match in matches) {
-            if (!usedMatches.Contains(match)) {
-                newMatches.Add(match);
-            }
-        }
-        newMatches.AddRange(combinedMatches);
-
-
-        return newMatches;
-    }
+    }   
 
     public void placeIngredient(Ingredient ingredient, Position position) {
         if (!canUseIngredient(ingredient, position)) {
             return;
         }
         clearIngredientPreview();
-        sendToCustomer = true;
+        started = true;
+        placedIngredient = ingredient;
 
         ingredient.initIngredient(removeGems, changeGems);
         realDisplacements(ingredient.getDisplacements(position));
@@ -386,13 +389,11 @@ public class Board : MonoBehaviour {
 
         List<IBoardEntity> removedGems = checkBoardEntitiesOutofBounds();
         ingredient.boardEntitiesPushed(removedGems);
+
         ingredient.ingredientPlaced(board, position);
-        fallingTypes = ingredient.fallingTypes;
-
+        addToCurrentMatches(getPlacedIngredientMatches(position));
         ingredientSelector.ingredientUsed(ingredient);
-        sendToCustomer = !ingredient.bonusPlacement;
-
-        StartCoroutine(checkMatchesAfter(.5f, true));
+        checkMatchesAfterHelper(.5f, true, !getPlacedIngredientBonusPlacement());
     }
 
     public void previewIngredient(Ingredient ingredient, Position position) {
@@ -475,7 +476,6 @@ public class Board : MonoBehaviour {
         if (boardLocked) {
             return false;
         }
-   
         return true;
     }
 
@@ -569,7 +569,6 @@ public class Board : MonoBehaviour {
         return removedGems;
     }
 
-  
 
     private bool positionInBoard(Position position) {
         if (position == null) {
@@ -577,14 +576,13 @@ public class Board : MonoBehaviour {
         } else {
             return position.x >= 0 && position.y >= 0 && position.x < width && position.y < height;
         }
-
     }
 
-    private Vector3 positionToVector (Position position) {
+    public Vector3 positionToVector (Position position) {
         return new Vector3(position.x * gemWidth - (gemWidth * width /2 - gemWidth/2), position.y * gemHeight + (gemHeight / 2));
     }
 
-    private Vector3 positionToLocalVector(Position position) {
+    public Vector3 positionToLocalVector(Position position) {
         return new Vector3(position.x * gemWidth, position.y * gemHeight) / beScalar;
     }
 }

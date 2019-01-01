@@ -17,8 +17,8 @@ public class Customer : MonoBehaviour {
 	public void served(Expression expression, int money, Vector3 position, float speed) {
         Core.core.ExecuteAfterTime(moneyWaitTime, () => FindObjectOfType<MoneyScore>().addScore(money));
 
-        GetComponent<ILerpable>().lerpTo(position, speed);
-        GetComponent<FadeOnDestroy>().Destroy(1, Mathf.Max(0, 1.0f));
+        float time = GetComponent<ILerpable>().lerpTo(position, speed);
+        GetComponent<FadeOnDestroy>().Destroy(1, time - 1.0f);
 
         if (expression == Expression.happy) {
             GetComponentInChildren<SpriteRenderer>().sprite = happySprite;

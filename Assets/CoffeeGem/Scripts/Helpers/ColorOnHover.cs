@@ -11,7 +11,7 @@ public class ColorOnHover : MonoBehaviour {
     private Color hoverColor;
 
     [SerializeField]
-    private SpriteRenderer target;
+    private ColorLerp target;
 
     private OnEvent onEvent;
 
@@ -19,7 +19,7 @@ public class ColorOnHover : MonoBehaviour {
 
     void Start() {
         if (target == null) {
-            target = gameObject.GetComponent<SpriteRenderer>();
+            target = gameObject.GetComponent<ColorLerp>();
         }
         onEvent = gameObject.GetComponent<OnEvent>();
 
@@ -37,12 +37,12 @@ public class ColorOnHover : MonoBehaviour {
     }
     
     private void setHoverColor() {
-        target.color = hoverColor;
+        target.lerpToColor(hoverColor);
     }
 
     private void stopHoverColor() {
         if (!selected) {
-            target.color = standardColor;
+            target.lerpToColor(standardColor);
         }
     }
 }

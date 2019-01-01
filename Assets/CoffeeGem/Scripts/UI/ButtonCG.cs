@@ -1,8 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class ButtonCG : ColorLerp {
+public class ButtonCG : ColorLerp, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler {
+
+    public event Action clicked;
 
     [SerializeField]
     private Color normalColor = new Color(1, 1, 1);
@@ -14,42 +18,94 @@ public class ButtonCG : ColorLerp {
     private Color disabledColor = new Color(.5f, .5f, .5f);
 
     [SerializeField]
-    private bool enabled = true;
+    private bool toggle = false;
+    private bool toggled = false;
+
+    [SerializeField]
+    private bool buttonEnabled = true;
 
     private void Start() {
-        setEnabled(enabled);
+        setEnabled(buttonEnabled);
     }
 
-    public void setEnabled(bool enabled) {
-        this.enabled = enabled;
-        if (!enabled) {
+    public void setEnabled(bool buttonEnabled) {
+        this.buttonEnabled = buttonEnabled;
+        if (!buttonEnabled) {
             lerpToColor(disabledColor);
+        } else if (toggle) {
+            if (toggled) {
+                lerpToColor(clickColor);
+            } else {
+                lerpToColor(normalColor);
+            }
         } else {
             lerpToColor(normalColor);
         }
+
     }
 
     public void OnMouseEnter() {
-        if (enabled) {
+        if (buttonEnabled && showHover()) {
             lerpToColor(onHoverColor);
         }
     }
 
     public void OnMouseExit() {
-        if (enabled) {
+        if (buttonEnabled && showHover()) {
             lerpToColor(normalColor);
         }
     }
 
     public void OnMouseDown() {
-        if (enabled) {
+        if (buttonEnabled) {
             lerpToColor(clickColor);
         }
     }
 
     public void OnMouseUp() {
-        if (enabled) {
-            lerpToColor(onHoverColor);
+        if (buttonEnabled) {
+            clicked?.Invoke();
+            toggled = !toggled;
+            if (toggledOn()) {
+
+            } else {
+                lerpToColor(onHoverColor);
+            }
+        }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData) {
+        OnMouseEnter();
+    }
+
+    public void OnPointerExit(PointerEventData eventData) {
+        OnMouseExit();
+    }
+
+    public void OnPointerDown(PointerEventData eventData) {
+        OnMouseDown();
+    }
+
+    public void OnPointerUp(PointerEventData eventData) {
+        OnMouseUp();
+    }
+
+    private bool toggledOn() {
+        return toggle && toggled;
+    }
+
+    private bool showHover() {
+        if (toggle && toggled) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public void toggleOff() {
+        if (toggle && toggled) {
+            toggled = false;
+            lerpToColor(normalColor);
         }
     }
 }

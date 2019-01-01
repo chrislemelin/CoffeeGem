@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class IngredientSelector : MonoBehaviour {
 
@@ -15,6 +16,9 @@ public class IngredientSelector : MonoBehaviour {
     IngredientSelectedDisplay selectedIngredientDisplay;
 
     [SerializeField]
+    private List<IngredientType> ingredientOverridePool = new List<IngredientType>();
+
+    [SerializeField]
     private List<IngredientType> ingredientsPool = new List<IngredientType>();
 
     [SerializeField]
@@ -28,6 +32,12 @@ public class IngredientSelector : MonoBehaviour {
 
 
     public void Start() {
+        if (ingredientOverridePool.Count > 0) {
+            ingredientsPool = ingredientOverridePool;
+        } else {
+            ingredientsPool = MenuLibrary.Instance.getIngredients().Select((ingred) => ingred.type).ToList();
+        }
+
         foreach (IngredientType type in ingredientsPool) {
             ingredientsNotInUse.Add(type);
         }

@@ -13,11 +13,13 @@ public class Shop : MonoBehaviour {
     private GameObject items;
 
 	// Use this for initialization
-	void Start () {
-        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.BasicBlue2, 500));
-        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.BlueToPurple, 500));
-        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.YellowDestroy, 1000));
+	void Start() { 
+        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.AdditionalMove, 250));
 
+        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.SmallBlack, 500));
+        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.BlueToPurple, 500));
+
+        shopItems.Add(new KeyValuePair<IngredientType, int>(IngredientType.YellowDestroy, 1000));
 
         shopItems.ForEach(item => addShopItem(item.Key, item.Value));
 	}
