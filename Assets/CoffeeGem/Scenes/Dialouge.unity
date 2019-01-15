@@ -343,6 +343,7 @@ MonoBehaviour:
   onHoverColor: {r: 0.38235295, g: 0.38235295, b: 0.38235295, a: 1}
   clickColor: {r: 0.75, g: 0.75, b: 0.75, a: 1}
   disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  toggle: 0
   buttonEnabled: 1
 --- !u!114 &566605378
 MonoBehaviour:

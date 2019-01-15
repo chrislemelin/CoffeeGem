@@ -510,7 +510,6 @@ GameObject:
   - component: {fileID: 224932378471072050}
   - component: {fileID: 114054282285666974}
   - component: {fileID: 114299044991749816}
-  - component: {fileID: 114417265991690580}
   m_Layer: 0
   m_Name: IngredientSelectedDisplay
   m_TagString: Untagged
@@ -1680,17 +1679,6 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
---- !u!114 &114417265991690580
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1765564704317156}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae0ff1e600c31e547b1378a5bdb5d11a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114417853481898652
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2390,7 +2378,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dragTarget: {fileID: 1607094828244838}
-  ingredientLibrarySelected: {fileID: 114417265991690580}
+  ingredientLibrarySelected: {fileID: 0}
   ingredientUIItemPF: {fileID: 1930592904220486, guid: d492aa3318bfef946b709b2114ab1e28,
     type: 2}
   target: {fileID: 1298277809004558}

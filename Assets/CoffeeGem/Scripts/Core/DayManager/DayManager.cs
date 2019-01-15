@@ -20,22 +20,26 @@ public class DayManager : MonoBehaviour {
 
     [SerializeField]
     private CustomerManager customerManager;
+    private DayLibrary dayLibrary;
 
     private void Awake() {
         dayManager = this;
     }
 
     private void Start() {
+        dayLibrary = LibraryManager.instance.get<DayLibrary>();
+
         customerManager = FindObjectOfType<CustomerManager>();
         customerManager.setCustomersPerDay(customersPerDay);
 
-        dayDisplay.displayDay(day, startDay, true);
+        dayDisplay.displayDay(dayLibrary.getDateTime(), startDay, true);
     }
 
     public void endDay() {
         day++;
         end?.Invoke();
-        dayDisplay.displayDay(day, () => SceneManager.LoadScene(0));
+        dayLibrary.incrementDay();
+        dayDisplay.displayDay(DateTime.Now, start: false);
     }
 
     public void startDay() {

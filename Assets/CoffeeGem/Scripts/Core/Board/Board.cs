@@ -54,6 +54,7 @@ public class Board : BoardPlacedIngredientManager {
     private Ingredient selectedIngredient;
     private IngredientSelector ingredientSelector;
     private MatchCalculator matchCalculator;
+    private BELibrary bELibrary;
 
     private Dictionary<Position, IBoardEntity> board = new Dictionary<Position, IBoardEntity>();
     private List<BoardMatch> currentBoardMatches = new List<BoardMatch>();
@@ -64,7 +65,7 @@ public class Board : BoardPlacedIngredientManager {
         ingredientSelector = FindObjectOfType<IngredientSelector>();
         matchCalculator = MatchCalculator.matchCalculator;
         float targetGemWidth = boardWidth / width;
-
+        bELibrary = LibraryManager.instance.get<BELibrary>();
 
         RectTransform rt = (RectTransform)availibleGems[0].gameObject.transform;
         float tempGemWidth = rt.rect.width;
@@ -239,7 +240,7 @@ public class Board : BoardPlacedIngredientManager {
                     dropBy.Add(dropBy[dropBy.Count - 1] + 1);
                     IBoardEntity be;
                     if (getPlacedIngredientFallingTypes().Count != 0) {
-                        be = BELibrary.Instance.get(getPlacedIngredientFallingTypes()[0]);
+                        be = LibraryManager.instance.get<BELibrary>().get(getPlacedIngredientFallingTypes()[0]);
                         getPlacedIngredientFallingTypes().RemoveAt(0);
                     } else {
                         be = availibleGems[UnityEngine.Random.Range(0, availibleGems.Count)];
@@ -465,7 +466,7 @@ public class Board : BoardPlacedIngredientManager {
     public void changeGems(Dictionary<Position, GemType> changeGems) {
         removeGems(new HashSet<Position>(changeGems.Keys.ToList()));
         foreach (KeyValuePair<Position, GemType> entry in changeGems) {
-            addBoardEntity(BELibrary.Instance.get(entry.Value), entry.Key);
+            addBoardEntity(bELibrary.get(entry.Value), entry.Key);
         }
     }
 

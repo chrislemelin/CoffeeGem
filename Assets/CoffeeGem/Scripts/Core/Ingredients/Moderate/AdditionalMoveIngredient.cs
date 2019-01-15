@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AdditionalMoveIngredient : Ingredient {
 
-    public AdditionalMoveIngredient() {
+    public AdditionalMoveIngredient(BELibrary bELibrary) : base(bELibrary) {
         title = "Mixed Blend";
         description = "Allows you to play another ingredient";
         flavorText = "This blend works wonders if you mix it with somethings";
@@ -13,6 +13,6 @@ public class AdditionalMoveIngredient : Ingredient {
         displacementType = IngredientDisplacement.Left;
         bonusPlacement = true;
 
-        boardEntities.Add(new Position(0, 0), BELibrary.Instance.get(GemType.YellowGem));
+        boardEntities.Add(new Position(0, 0), bELibrary.get(GemType.YellowGem));
     }
 }

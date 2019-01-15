@@ -35,7 +35,7 @@ public class ShopItem : MonoBehaviour {
     public void setItem(Ingredient ingredient, int cost) {
         this.ingredient = ingredient;
         this.cost = cost;
-        previewer.renderPreview(ingredient);
+        previewer.renderIngredient(ingredient);
         textmeshPro.SetText("$" + (cost / 100.0f).ToString("0.00"));
         button.GetComponent<OnClick>().click += () => addIngredient(ingredient);
     }

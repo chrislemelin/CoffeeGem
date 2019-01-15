@@ -28,6 +28,8 @@ public class IngredientPreviewer : MonoBehaviour {
 
     private GameObject boardEntityPreviewHolder;
 
+    public bool animation = true;
+
     public Ingredient renderedIngredient { get; protected set; }
 
     [SerializeField]
@@ -73,10 +75,15 @@ public class IngredientPreviewer : MonoBehaviour {
         copyImage.color = renderer.color;
     }
 
-    public void renderPreview(Ingredient ingredient) {
+    public void renderIngredient(Ingredient ingredient) {
         if (boardEntityPreviewHolder != null) {
-            boardEntityPreviewHolder.GetComponent<FadeOnDestroy>().Destroy(1);
-            boardEntityPreviewHolder.GetComponent<ILerpable>().lerpToTimed(boardEntityPreviewHolder.transform.localPosition + new Vector3(0, ui ? -50 : -1), 1);
+            if (animation) {
+                boardEntityPreviewHolder.GetComponent<FadeOnDestroy>().Destroy(1);
+                boardEntityPreviewHolder.GetComponent<ILerpable>().lerpToTimed(boardEntityPreviewHolder.transform.localPosition + new Vector3(0, ui ? -50 : -1), 1);
+            } else {
+                boardEntityPreviewHolder.GetComponent<FadeOnDestroy>().Destroy(0);
+            }
+
         }
 
         if (ingredient == null) {
@@ -97,7 +104,7 @@ public class IngredientPreviewer : MonoBehaviour {
         boardEntityPreviewHolder = Instantiate(boardEntityPreviewHolderPf);
         boardEntityPreviewHolder.transform.SetParent(previewTarget.transform, false);
         boardEntityPreviewHolder.GetComponent<GridLayoutGroup>().constraintCount = ingredientDimensions.x;
-        boardEntityPreviewHolder.transform.localPosition = new Vector3(0, ui ? 50 : 1);
+    
         
 
         foreach (SpriteRenderer render in getPreviewSpriteRenderers(ingredient)) {
@@ -111,11 +118,16 @@ public class IngredientPreviewer : MonoBehaviour {
             }
             preview.transform.SetParent(boardEntityPreviewHolder.transform, false);
         }
-        boardEntityPreviewHolder.GetComponent<ILerpable>().lerpToTimed(new Vector2(0, 0), 1);
+        if (animation) {
+            boardEntityPreviewHolder.transform.localPosition = new Vector3(0, ui ? 50 : 1);
+            boardEntityPreviewHolder.GetComponent<ILerpable>().lerpToTimed(new Vector2(0, 0), 1);
 
-        boardEntityPreviewHolder.GetComponent<Fade>().setShow(false, true);
-        boardEntityPreviewHolder.gameObject.GetComponent<Fade>().init();
-        boardEntityPreviewHolder.GetComponent<Fade>().setShow(true);
+            boardEntityPreviewHolder.GetComponent<Fade>().setShow(false, true);
+            boardEntityPreviewHolder.gameObject.GetComponent<Fade>().init();
+            boardEntityPreviewHolder.GetComponent<Fade>().setShow(true);
+        } else {
+            boardEntityPreviewHolder.transform.localPosition = new Vector3(0, 0);
+        }
 
         Fade fade = gameObject.transform.parent.GetComponent<Fade>();
         if(fade != null) {

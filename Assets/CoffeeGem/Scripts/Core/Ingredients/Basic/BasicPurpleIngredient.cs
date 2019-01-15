@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BasicPurpleIngredient : Ingredient {
 
-    public BasicPurpleIngredient() {
+    public BasicPurpleIngredient(BELibrary bELibrary): base(bELibrary) {
         title = "Purple Haze";
         description = "A basic ingredient";
         flavorText = "I'm tired of writing these flavor texts";
@@ -13,9 +13,9 @@ public class BasicPurpleIngredient : Ingredient {
         displacementType = IngredientDisplacement.Right;
 
 
-        boardEntities.Add(new Position(1, -1), BELibrary.Instance.get(GemType.RedGem));
-        boardEntities.Add(new Position(1, 1), BELibrary.Instance.get(GemType.PurpleGem));
-        boardEntities.Add(new Position(0, 0), BELibrary.Instance.get(GemType.PurpleGem));
+        boardEntities.Add(new Position(1, -1), bELibrary.get(GemType.RedGem));
+        boardEntities.Add(new Position(1, 1), bELibrary.get(GemType.PurpleGem));
+        boardEntities.Add(new Position(0, 0), bELibrary.get(GemType.PurpleGem));
 
     }
 }

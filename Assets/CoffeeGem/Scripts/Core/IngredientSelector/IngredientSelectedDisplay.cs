@@ -19,14 +19,17 @@ public class IngredientSelectedDisplay : IngredientPreviewer {
     [SerializeField]
     private GameObject flavorTextPf;
 
+    private IngredientLibrary ingredientLibrary;
+
     List<GameObject> texts = new List<GameObject>();
 
     public void Start() {
-        setIngredient(IngredientLibrary.Instance.get(IngredientType.BasicBlue));
+        ingredientLibrary = LibraryManager.instance.get<IngredientLibrary>();
+        setIngredient(ingredientLibrary.get(IngredientType.BasicBlue));
     }
 
     public void setIngredient(Ingredient ingredient) {
-        renderPreview(ingredient);
+        renderIngredient(ingredient);
         setText(ingredient);
     }
 

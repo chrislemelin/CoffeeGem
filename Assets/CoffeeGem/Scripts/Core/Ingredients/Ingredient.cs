@@ -18,18 +18,21 @@ public class Ingredient {
     public bool bonusPlacement { get; protected set; } = false;
     public List<IngredientMatch> bonusMatches = new List<IngredientMatch>();
     public bool showAdjacent { get; protected set; }
-  
 
+    protected BELibrary bELibrary;
     protected Action<ISet<Position>> deleteGems;
     protected Action<Dictionary<Position, GemType>> changeGems;
 
-    public Ingredient() {
-        description = "A basic ingredient";
-        flavorText = "Chocolate tasting notes";
+    public Ingredient(BELibrary bELibrary) {
+        this.bELibrary = bELibrary;
+        //description = "A basic ingredient";
+        //flavorText = "Chocolate tasting notes";
     }
 
     public static Ingredient copy(Ingredient other) {
-        Ingredient ingredient = (Ingredient)other.GetType().GetConstructor(Type.EmptyTypes).Invoke(null);
+        var argTypes = new[] { typeof (BELibrary) };
+
+        Ingredient ingredient = (Ingredient)other.GetType().GetConstructor(argTypes).Invoke(new[] { other.bELibrary });
         //ingredient.boardEntities = other.boardEntities;
         //ingredient.displacementType = other.displacementType;
         //ingredient.type = other.type;

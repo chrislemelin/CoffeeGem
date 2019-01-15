@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Core : MonoBehaviour {
@@ -37,5 +38,13 @@ public class Core : MonoBehaviour {
             field.SetValue(copy, field.GetValue(original));
         }
         return copy;
+    } 
+}
+
+public static class Extensions {
+    public static HashSet<T> ToHashSet<T>(
+        this IEnumerable<T> source,
+        IEqualityComparer<T> comparer = null) {
+        return new HashSet<T>(source, comparer);
     }
 }

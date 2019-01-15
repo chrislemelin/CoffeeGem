@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BasicGreenIngredient : Ingredient {
 
-	public BasicGreenIngredient() {
+	public BasicGreenIngredient(BELibrary bELibrary) : base(bELibrary) {
         title = "Sumtra";
         description = "A basic ingredient";
         flavorText = "Earthy";
@@ -13,9 +13,9 @@ public class BasicGreenIngredient : Ingredient {
         displacementType = IngredientDisplacement.Left;
 
 
-        boardEntities.Add(new Position(0, 0), BELibrary.Instance.get(GemType.GreenGem));
-        boardEntities.Add(new Position(1, -1), BELibrary.Instance.get(GemType.GreenGem));
-        boardEntities.Add(new Position(1, 0), BELibrary.Instance.get(GemType.BlueGem));
+        boardEntities.Add(new Position(0, 0), bELibrary.get(GemType.GreenGem));
+        boardEntities.Add(new Position(1, -1), bELibrary.get(GemType.GreenGem));
+        boardEntities.Add(new Position(1, 0), bELibrary.get(GemType.BlueGem));
     }
 
 }

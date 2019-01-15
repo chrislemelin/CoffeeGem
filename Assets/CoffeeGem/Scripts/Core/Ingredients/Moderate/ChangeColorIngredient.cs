@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ChangeColorIngredient : Ingredient {
 
-    public ChangeColorIngredient() {
+    public ChangeColorIngredient(BELibrary bELibrary) : base(bELibrary) {
         title = "Color Changer";
         description = "Changes adjacent blue gems to purple gems";
         flavorText = "Where those gems always purple?";
@@ -13,8 +13,8 @@ public class ChangeColorIngredient : Ingredient {
         type = IngredientType.BlueToPurple;
         displacementType = IngredientDisplacement.Down;
 
-        boardEntities.Add(new Position(0, 1), BELibrary.Instance.get(GemType.PurpleGem));
-        boardEntities.Add(new Position(0, 0), BELibrary.Instance.get(GemType.GreenGem));
+        boardEntities.Add(new Position(0, 1), bELibrary.get(GemType.PurpleGem));
+        boardEntities.Add(new Position(0, 0), bELibrary.get(GemType.GreenGem));
     }
 
     public override void ingredientPlaced(Dictionary<Position, IBoardEntity> board, Position placedPosition) {

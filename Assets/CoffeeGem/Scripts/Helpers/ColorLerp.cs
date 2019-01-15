@@ -10,7 +10,7 @@ public class ColorLerp : MonoBehaviour {
     GameObject target;
 
     [SerializeField]
-    private float duration = .1f;
+    protected float duration = .1f;
 
     private List<SpriteRenderer> spriteRenderers;
     private List<TextMeshProUGUI> textMeshes;
@@ -22,7 +22,7 @@ public class ColorLerp : MonoBehaviour {
     private Color startColor;
 
     // Use this for initialization
-    void Awake() {
+    protected void Awake() {
         if (target == null) {
             target = gameObject;
         }
@@ -40,7 +40,7 @@ public class ColorLerp : MonoBehaviour {
         lerpingColor = startColor;
     }
 
-    public  Color getColor() {
+    public Color getColor() {
         return lerpingColor;
     }
 
@@ -49,22 +49,41 @@ public class ColorLerp : MonoBehaviour {
         lerpToColor(newColor);
     }
 
-    public void lerpToColor(Color color) {
-        isLerping = true;
-        lerpingColor = color;
-        startTime = Time.time;
+    public void lerpToColor(Color color, bool instant = false) {
 
-        if (spriteRenderers.Count > 0) {
-            startColor = spriteRenderers[0].color;
-        } else if (textMeshes.Count > 0) {
-            startColor = textMeshes[0].color;
-        } else if (images.Count > 0) {
-            startColor = images[0].color;
+        if (duration == 0 || instant) {
+            foreach (SpriteRenderer spriteRenderer in spriteRenderers) {
+                spriteRenderer.color = color;
+            }
+            foreach (TextMeshProUGUI textMesh in textMeshes) {
+                textMesh.color = color;
+            }
+            foreach (Image image in images) {
+                image.color = color;
+            }
+        } else {
+            isLerping = true;
+            lerpingColor = color;
+            startTime = Time.time;
+            if (spriteRenderers.Count > 0) {
+                startColor = spriteRenderers[0].color;
+            } else if (textMeshes.Count > 0) {
+                startColor = textMeshes[0].color;
+            } else if (images.Count > 0) {
+                startColor = images[0].color;
+            }
         }
+
+    
+      
     }
 
     public void cancelLerpToColor() {
         isLerping = false;
+    }
+
+    public void setDuration(float duration) {
+        this.duration = duration;
     }
 
     // Update is called once per frame
@@ -75,6 +94,9 @@ public class ColorLerp : MonoBehaviour {
                 ratio = 1;
             } else {
                 ratio = (Time.time - startTime) / duration;
+            }
+            if (ratio > 1) {
+                ratio = 1;
             }
 
             foreach (SpriteRenderer spriteRenderer in spriteRenderers) {

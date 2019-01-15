@@ -25,7 +25,7 @@ public class Shop : MonoBehaviour {
 	}
 
     private void addShopItem(IngredientType ingredientType, int cost) {
-        Ingredient ingredient = FindObjectOfType<IngredientLibrary>().get(ingredientType);
+        Ingredient ingredient = LibraryManager.instance.get<IngredientLibrary>().get(ingredientType);
         GameObject shopItem = Instantiate(shopItemPf);
         shopItem.transform.SetParent(items.transform, false);
         shopItem.GetComponent<ShopItem>().setItem(ingredient, cost);

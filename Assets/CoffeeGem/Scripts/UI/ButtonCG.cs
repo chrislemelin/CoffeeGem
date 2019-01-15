@@ -24,8 +24,15 @@ public class ButtonCG : ColorLerp, IPointerEnterHandler, IPointerExitHandler, IP
     [SerializeField]
     private bool buttonEnabled = true;
 
-    private void Start() {
+    [SerializeField]
+
+    protected void Awake() {
+        base.Awake();
+
+        float tempDuration = duration;
+        setDuration(0f);
         setEnabled(buttonEnabled);
+        setDuration(tempDuration);
     }
 
     public void setEnabled(bool buttonEnabled) {
@@ -62,16 +69,20 @@ public class ButtonCG : ColorLerp, IPointerEnterHandler, IPointerExitHandler, IP
         }
     }
 
-    public void OnMouseUp() {
+    public void OnMouseUp(bool instant = false) {
         if (buttonEnabled) {
             clicked?.Invoke();
             toggled = !toggled;
             if (toggledOn()) {
-
+                lerpToColor(clickColor, false);
             } else {
-                lerpToColor(onHoverColor);
+                lerpToColor(onHoverColor, false);
             }
         }
+    }
+
+    public void fireClick() {
+        OnMouseUp();
     }
 
     public void OnPointerEnter(PointerEventData eventData) {
@@ -83,11 +94,15 @@ public class ButtonCG : ColorLerp, IPointerEnterHandler, IPointerExitHandler, IP
     }
 
     public void OnPointerDown(PointerEventData eventData) {
-        OnMouseDown();
+        if (eventData.pointerId == -1) {
+            OnMouseDown();
+        }
     }
 
     public void OnPointerUp(PointerEventData eventData) {
-        OnMouseUp();
+        if (eventData.pointerId == -1) {
+            OnMouseUp();
+        }
     }
 
     private bool toggledOn() {

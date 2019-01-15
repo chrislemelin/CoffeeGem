@@ -12,8 +12,9 @@ public class FadeOnDestroy : Fade {
         Core.core.ExecuteAfterTime(delay, () => {
             setDuration(fadeTime);
             setShow(false);
-
-            StartCoroutine(DestroyHelper(fadeTime + destroyDelay, action));
+            if (gameObject != null) {
+                StartCoroutine(DestroyHelper(fadeTime + destroyDelay, action));
+            }
         });   
     }
 
@@ -21,7 +22,6 @@ public class FadeOnDestroy : Fade {
 
     IEnumerator DestroyHelper(float fadeTime, Action action) {
         yield return new WaitForSeconds(fadeTime);
-
         action?.Invoke();
         Destroy(target);
     }

@@ -6,14 +6,13 @@ using UnityEngine;
 public class MenuLibraryUI : MonoBehaviour {
 
     private List<IngredientHolder> ingredientsHolders;
-    [SerializeField]
-    IngredientLibrarySelection ingredientLibrarySelection;
     Dictionary<IngredientHolder, int> holderToIndex = new Dictionary<IngredientHolder, int>();
+    private MenuLibrary menuLibrary;
 
-    private void Awake() {
-        ingredientLibrarySelection.dropCallback = dropped;
+    private void Start() {
+        menuLibrary = LibraryManager.instance.get<MenuLibrary>();
         ingredientsHolders = GetComponentsInChildren<IngredientHolder>().ToList();
-        List<Ingredient> ingredients = MenuLibrary.Instance.getIngredients();
+        List<Ingredient> ingredients = menuLibrary.getIngredients();
         for (int a = 0; a < ingredientsHolders.Count; a++) {
             if (a < ingredients.Count) {
                 ingredientsHolders[a].setIngredient(ingredients[a]);
@@ -24,16 +23,16 @@ public class MenuLibraryUI : MonoBehaviour {
         }   
     }
 
-    private void dropped(Ingredient ingredient) {
+    public void dropped(Ingredient ingredient) {
         foreach(IngredientHolder ingredientHolder in ingredientsHolders) {
             RectTransform rectTransform = ingredientHolder.transform as RectTransform;
             if (RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition)) {
                 int index = holderToIndex[ingredientHolder];
                 foreach (IngredientHolder ingredientHolderTemp in ingredientsHolders) {
                     if (ingredientHolderTemp.renderedIngredient == ingredient) {
-                        MenuLibrary.Instance.removeIngredient(ingredient);
+                        menuLibrary.removeIngredient(ingredient);
                         if (ingredientHolderTemp != ingredientHolder) {
-                            ingredientHolderTemp.renderPreview(null);
+                            ingredientHolderTemp.renderIngredient(null);
                         }
                     }
                 }
@@ -42,7 +41,7 @@ public class MenuLibraryUI : MonoBehaviour {
                    // MenuLibrary.Instance.removeIngredient(ingredientHolder.renderedIngredient);
                 }
 
-                MenuLibrary.Instance.addIngredient(ingredient, index);
+                menuLibrary.addIngredient(ingredient, index);
                 ingredientHolder.setIngredient(ingredient);
             }
         }

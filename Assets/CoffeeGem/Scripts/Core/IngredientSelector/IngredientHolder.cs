@@ -18,7 +18,7 @@ public class IngredientHolder : IngredientPreviewer {
 
     public void setIngredient(Ingredient ingredient) {
         this.ingredient = ingredient;
-        renderPreview(ingredient);
+        renderIngredient(ingredient);
     }
 
 }

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ILibrary : MonoBehaviour {
+public interface ILibrary {
 
+    void init();
 
 }

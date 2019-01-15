@@ -27,12 +27,18 @@ public class MoneyScore : MonoBehaviour {
 
     public event Action<int> moneyChangedEvent;
 
+    private MoneyLibrary moneyLibrary;
+
     private float lastUpdate;
 
     // Use this for initialization
     void Start() {
+        moneyLibrary = LibraryManager.instance.get<MoneyLibrary>();
         lastUpdate = Time.time;
         StartCoroutine(ScoreUpdater());
+        score = moneyLibrary.getMoney();
+        displayScore = score;
+        scoreTextMesh.text = "$" + (displayScore / 100.0f).ToString("0.00"); //Write it to the UI
     }
 
     public int getScore() {
@@ -52,6 +58,8 @@ public class MoneyScore : MonoBehaviour {
     }
 
     public void addScore(int score) {
+        moneyLibrary.addMoney(score);
+
         this.score += score;
         moneyChangedEvent?.Invoke(this.score);
 

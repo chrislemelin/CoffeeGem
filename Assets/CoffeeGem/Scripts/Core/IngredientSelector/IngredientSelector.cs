@@ -25,17 +25,18 @@ public class IngredientSelector : MonoBehaviour {
     private Board board;
     
     private Dictionary<Ingredient, IngredientHolder> selectedTypeToHolder = new Dictionary<Ingredient, IngredientHolder>();
-
     private Ingredient selectedIngredient;
-
     private List<IngredientType> ingredientsNotInUse = new List<IngredientType>();
-
+    private MenuLibrary menuLibrary;
+    private IngredientLibrary ingredientLibrary;
 
     public void Start() {
+        menuLibrary = LibraryManager.instance.get<MenuLibrary>();
+        ingredientLibrary = LibraryManager.instance.get<IngredientLibrary>();
         if (ingredientOverridePool.Count > 0) {
             ingredientsPool = ingredientOverridePool;
         } else {
-            ingredientsPool = MenuLibrary.Instance.getIngredients().Select((ingred) => ingred.type).ToList();
+            ingredientsPool = menuLibrary.getIngredients().Select((ingred) => ingred.type).ToList();
         }
 
         foreach (IngredientType type in ingredientsPool) {
@@ -57,7 +58,7 @@ public class IngredientSelector : MonoBehaviour {
     }
 
     private void setIngredientType(IngredientHolder holder, IngredientType type) {
-        Ingredient ingredient = Ingredient.copy(IngredientLibrary.Instance.get(type));
+        Ingredient ingredient = Ingredient.copy(ingredientLibrary.get(type));
         selectedTypeToHolder.Add(ingredient, holder);
         holder.setIngredient(ingredient);
         board.setIngredient(ingredient);

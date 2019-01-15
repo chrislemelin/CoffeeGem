@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class DayDisplay : MonoBehaviour {
 
@@ -19,16 +20,24 @@ public class DayDisplay : MonoBehaviour {
     }
 
 
-    public void displayDay(int number, Action callback = null, bool setShow = false) {
-        text.text = "Day " + number;
-        fade.setShow(true);
-        if (setShow) {
+    public void displayDay(DateTime time, Action callback = null, bool start = false) {
+        background.SetActive(true);
+
+        if (start) {
+            text.text = time.ToString("dddd, d MMMM");
+            fade.setShow(true);
             fade.setTransparent(1.0f, true);
+
+            Core.core.ExecuteAfterTime(2.0f, () => {
+                fade.setShow(false);
+                Core.core.ExecuteAfterTime(1.0f, () => callback?.Invoke());
+            });
+        } else {
+            text.text = "";
+            fade.setShow(true);
+            Core.core.ExecuteAfterTime(1.0f, () => { SceneManager.LoadScene(0); });
         }
-        Core.core.ExecuteAfterTime(2.0f, () => {
-            fade.setShow(false);
-            Core.core.ExecuteAfterTime(1.0f, () => callback?.Invoke());
-        });
+    
 
     }
 }

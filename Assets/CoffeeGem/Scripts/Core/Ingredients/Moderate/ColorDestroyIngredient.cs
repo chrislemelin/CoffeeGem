@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ColorDestroyIngredient : Ingredient {
 
-    public ColorDestroyIngredient() {
+    public ColorDestroyIngredient(BELibrary bELibrary) : base(bELibrary) {
         title = "Yellow Destroyer";
         description = "Destroys all yellow gems";
         flavorText = "This ingredient really doesn't play well with others";
@@ -13,8 +13,8 @@ public class ColorDestroyIngredient : Ingredient {
         displacementType = IngredientDisplacement.Left;
 
 
-        boardEntities.Add(new Position(0, 1), BELibrary.Instance.get(GemType.GreenGem));
-        boardEntities.Add(new Position(0, 0), BELibrary.Instance.get(GemType.BlueGem));
+        boardEntities.Add(new Position(0, 1), bELibrary.get(GemType.GreenGem));
+        boardEntities.Add(new Position(0, 0), bELibrary.get(GemType.BlueGem));
     }
 
     public override void ingredientPlaced(Dictionary<Position, IBoardEntity> board, Position placedPosition) {
